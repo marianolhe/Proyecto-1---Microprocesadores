@@ -10,7 +10,7 @@ El cual está siendo implementado en **C++** utilizando hilos POSIX (pthread) y 
   > Para Windows se recomienda usar **WSL** o MinGW.
 
 ## ▶️ Compilación y ejecución
-El proyecto incluye un **Makefile** para compilar y limpiar el programa.
+El proyecto incluye un Makefile para compilar y limpiar el programa.
 
 ### Compilar
 ```bash
@@ -37,6 +37,7 @@ make clean
 
 ## 👩‍💻 Autoras
 Proyecto desarrollado por el Grupo 1.
+
 
 
 
