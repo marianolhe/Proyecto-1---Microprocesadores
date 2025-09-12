@@ -1,5 +1,5 @@
 #include <iostream>
-#include <cstdlib>   // system("clear")
+#include <cstdlib>
 #include "menu.h"
 #include "utils.h"
 
@@ -16,12 +16,11 @@ MenuOption mostrarMenu() {
     };
 
     while (true) {
-        system("clear"); // limpia pantalla en Linux
+        system("clear");
         cout << "========================================\n";
         cout << "         BIENVENIDO A PONG ASCII        \n";
         cout << "========================================\n\n";
 
-        // Mostrar opciones con indicador ">"
         for (int i = 0; i < numOpciones; i++) {
             if (i == seleccion) cout << "   > " << opciones[i] << "\n";
             else cout << "     " << opciones[i] << "\n";
@@ -31,21 +30,19 @@ MenuOption mostrarMenu() {
         cout << " Usa ↑ y ↓ para moverte, Enter para seleccionar\n";
         cout << "========================================\n";
 
-        int tecla = getch(); // Captura la tecla presionada
+        int tecla = getch();
 
-        // En Linux: flechas generan secuencia de 3 caracteres:
-        // 27 (ESC), 91 ([), y 65/66 (arriba/abajo)
         if (tecla == 27 && kbhit()) {
             int t2 = getch();
             if (t2 == 91) {
                 int t3 = getch();
-                if (t3 == 65) { // flecha arriba
+                if (t3 == 65) {
                     seleccion = (seleccion - 1 + numOpciones) % numOpciones;
-                } else if (t3 == 66) { // flecha abajo
+                } else if (t3 == 66) {
                     seleccion = (seleccion + 1) % numOpciones;
                 }
             }
-        } else if (tecla == 10) { // Enter en Linux
+        } else if (tecla == 10) {
             return static_cast<MenuOption>(seleccion);
         }
     }
