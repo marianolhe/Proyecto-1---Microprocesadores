@@ -21,6 +21,10 @@ make
 ```bash
 ./Pong
 ````
+### Limpiar archivos compilados
+```bash
+make clean
+````
 
 ## 📂 Estructura del proyecto
 ```bash
@@ -33,4 +37,5 @@ make
 
 ## 👩‍💻 Autoras
 Proyecto desarrollado por el **Grupo 1**
+
 
