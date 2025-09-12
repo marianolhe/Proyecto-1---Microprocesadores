@@ -2,10 +2,10 @@
 
 ## 📌 Descripción
 Este repositorio contiene el desarrollo del juego **Pong**.
-El cual está siendo implementado en **C++** utilizando **hilos POSIX (pthread)** y técnicas de programación paralela para simular jugadores y la pelota en un entorno de consola.
+El cual está siendo implementado en **C++** utilizando hilos POSIX (pthread) y técnicas de programación paralela para simular jugadores y la pelota en un entorno de consola.
 
 ## ⚙️ Requisitos
-- **Compilador C++17** (ej. `g++`).
+- Compilador C++17 (ej. `g++`).
 - Sistema compatible con **pthread** (Linux/macOS).  
   > Para Windows se recomienda usar **WSL** o MinGW.
 
@@ -36,6 +36,7 @@ make clean
 ````
 
 ## 👩‍💻 Autoras
-Proyecto desarrollado por el **Grupo 1**
+Proyecto desarrollado por el Grupo 1.
+
 
 
