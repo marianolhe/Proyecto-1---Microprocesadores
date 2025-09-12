@@ -1,0 +1,23 @@
+# Archivos objeto
+*.o
+*.obj
+
+# Ejecutables
+*.exe
+a.out
+
+# Archivos de depuración
+*.d
+*.pdb
+
+# Carpetas de compilación
+/build/
+/bin/
+
+/.vscode/
+/.idea/
+
+# Archivos temporales
+*.log
+*.tmp
+*.swp
