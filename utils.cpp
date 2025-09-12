@@ -1,23 +1,22 @@
+#include "utils.h"
+#include <iostream>
 #include <termios.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include "utils.h"
 #include <cstdio>
 
-// getch() en Linux (similar a conio.h en Windows)
 int getch(void) {
     struct termios oldt, newt;
     int ch;
-    tcgetattr(STDIN_FILENO, &oldt);         // guarda configuración actual
+    tcgetattr(STDIN_FILENO, &oldt);
     newt = oldt;
-    newt.c_lflag &= ~(ICANON | ECHO);       // desactiva modo canonico y echo
+    newt.c_lflag &= ~(ICANON | ECHO);
     tcsetattr(STDIN_FILENO, TCSANOW, &newt);
     ch = getchar();
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldt); // restaura config original
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
     return ch;
 }
 
-// kbhit() en Linux (verifica si hay tecla presionada sin bloquear)
 int kbhit(void) {
     struct termios oldt, newt;
     int ch;
@@ -41,4 +40,8 @@ int kbhit(void) {
     }
 
     return 0;
+}
+
+void gotoxy(int x, int y) {
+    printf("%c[%d;%df", 0x1B, y, x);
 }

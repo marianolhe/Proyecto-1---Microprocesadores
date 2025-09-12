@@ -1,10 +1,17 @@
 #include <iostream>
 #include "menu.h"
 #include "instrucciones.h"
+#include "pong_game.h"
+#include "utils.h"
+#include <thread>
+#include <chrono>
 
 using namespace std;
+using namespace std::this_thread; 
+using namespace std::chrono;      
 
 int main() {
+    PongGame game;
     bool salir = false;
 
     while (!salir) {
@@ -12,10 +19,9 @@ int main() {
 
         switch (opcion) {
             case INICIAR_PARTIDA:
-                cout << ">> Aquí más adelante iniciaremos el juego...\n";
-                cout << "Presiona Enter para volver al menú\n";
-                cin.ignore();
-                cin.get();
+                cout << ">> Iniciando demo del juego...\n";
+                sleep_for(milliseconds(1000)); 
+                game.runDemo();
                 break;
 
             case INSTRUCCIONES:

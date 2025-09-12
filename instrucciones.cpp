@@ -6,7 +6,7 @@
 using namespace std;
 
 void mostrarInstrucciones() {
-    system("clear"); // limpiar pantalla
+    system("clear"); 
     cout << "========================================\n";
     cout << "              INSTRUCCIONES             \n";
     cout << "========================================\n\n";
@@ -34,5 +34,5 @@ void mostrarInstrucciones() {
     cout << "     Presiona cualquier tecla para volver\n";
     cout << "========================================\n";
 
-    getch(); // espera que el usuario presione una tecla
+    getch(); 
 }
