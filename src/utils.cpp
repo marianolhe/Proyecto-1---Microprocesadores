@@ -1,3 +1,15 @@
+/****************************************************
+ * Archivo: utils.cpp
+ * Descripción: Funciones útiles para manejar entrada de teclado y posicionamiento en consola.
+ * 
+ * - Marian Olivares
+ * - Marcela Ordoñez
+ * - Biancka Raxón
+ * - Diana Sosa 
+ * 
+ * Fecha: Septiembre de 2025
+ ****************************************************/
+
 #include "utils.h"
 #include <iostream>
 #include <termios.h>

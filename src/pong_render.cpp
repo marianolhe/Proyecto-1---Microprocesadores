@@ -1,3 +1,16 @@
+/****************************************************
+ * Archivo: pong_render.cpp
+ * Descripción: Encargado de pintar el juego en pantalla. Aquí se dibuja todo: cancha,
+ *              jugadores, pelota y marcador. También se actualiza la posición de cada
+ *              elemento según el estado del juego.
+ * - Marian Olivares
+ * - Marcela Ordoñez
+ * - Biancka Raxón
+ * - Diana Sosa 
+ * 
+ * Fecha: Septiembre de 2025
+ ****************************************************/
+
 #include "pong_render.h"
 #include <cstdlib>
 #include <iomanip>

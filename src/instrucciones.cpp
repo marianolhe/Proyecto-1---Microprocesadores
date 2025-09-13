@@ -1,3 +1,16 @@
+/****************************************************
+ * Archivo: instrucciones.cpp
+ * Descripción: Muestra en pantalla las instrucciones del juego, incluyendo objetivo,
+ *              controles, elementos visuales y ejemplo de tablero.
+ * Integrantes:
+ * - Marian Olivares
+ * - Marcela Ordoñez
+ * - Biancka Raxón
+ * - Diana Sosa 
+ * 
+ * Fecha: Septiembre de 2025
+ ****************************************************/
+
 #include <iostream>
 #include <cstdlib>
 #include "instrucciones.h"

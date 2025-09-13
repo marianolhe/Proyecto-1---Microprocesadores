@@ -1,3 +1,15 @@
+/****************************************************
+ * Archivo: main.cpp
+ * Descripción: Punto de entrada del juego Pong en consola. Muestra el menú principal,
+ *              permite al jugador iniciar la demo, leer instrucciones o salir.
+ * - Marian Olivares
+ * - Marcela Ordoñez
+ * - Biancka Raxón
+ * - Diana Sosa 
+ * 
+ * Fecha: Septiembre de 2025
+ ****************************************************/
+
 #include <iostream>
 #include "menu.h"
 #include "instrucciones.h"

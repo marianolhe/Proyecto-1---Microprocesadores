@@ -1,3 +1,17 @@
+/****************************************************
+ * Archivo: menu.cpp
+ * Descripción: Implementa el menú principal del juego Pong en consola. Permite al usuario
+ *              navegar entre opciones como iniciar partida, ver instrucciones, consultar
+ *              puntajes destacados o salir del juego. Utiliza entrada de teclado para
+ *              controlar la selección con flechas y confirmar con Enter.
+ * - Marian Olivares
+ * - Marcela Ordoñez
+ * - Biancka Raxón
+ * - Diana Sosa 
+ * 
+ * Fecha: Septiembre de 2025
+ ****************************************************/
+
 #include <iostream>
 #include <cstdlib>
 #include "menu.h"
@@ -18,7 +32,7 @@ MenuOption mostrarMenu() {
     while (true) {
         system("clear");
         cout << "========================================\n";
-        cout << "         BIENVENIDO A PONG ASCII        \n";
+        cout << "            BIENVENIDO A PONG           \n";
         cout << "========================================\n\n";
 
         for (int i = 0; i < numOpciones; i++) {

@@ -1,3 +1,16 @@
+/****************************************************
+ * Archivo: pong_game.cpp
+ * Descripción: Controla la lógica principal del juego Pong, incluyendo la inicialización,
+ *              simulación de movimiento, detección de colisiones, actualización de puntajes
+ *              y renderizado en modo demostración. 
+ * - Marian Olivares
+ * - Marcela Ordoñez
+ * - Biancka Raxón
+ * - Diana Sosa 
+ * 
+ * Fecha: Septiembre de 2025
+ ****************************************************/
+
 #include "pong_game.h"
 #include "utils.h"
 #include <cstdlib>
