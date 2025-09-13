@@ -24,6 +24,8 @@ PongRenderer::PongRenderer() {
     ballY = HEIGHT / 2;
     ballDirX = 1;
     ballDirY = 1;
+    playerName1 = "JUGADOR 1";
+    playerName2 = "JUGADOR 2";
 }
 
 void PongRenderer::updateScores(int p1, int p2) {
@@ -43,14 +45,25 @@ void PongRenderer::updateBall(int x, int y, int dirX, int dirY) {
     ballDirY = dirY;
 }
 
+void PongRenderer::updatePlayerNames(const string& name1, const string& name2) {
+    playerName1 = name1;
+    playerName2 = name2;
+}
+
 void PongRenderer::clearScreen() {
     system("clear");
 }
 
 void PongRenderer::renderScoreBoard() {
     cout << "==================================================\n";
-    cout << "  JUGADOR 1: " << setw(2) << scoreP1;
-    cout << "          JUGADOR 2: " << setw(2) << scoreP2;
+    
+    // Truncar nombres si son muy largos para mantener formato
+    string name1 = playerName1.length() > 10 ? playerName1.substr(0, 10) : playerName1;
+    string name2 = playerName2.length() > 10 ? playerName2.substr(0, 10) : playerName2;
+    
+    // Formatear con espaciado dinámico para que siempre se vea bien
+    cout << "  " << left << setw(12) << (name1 + ":") << setw(3) << scoreP1;
+    cout << "     " << left << setw(12) << (name2 + ":") << setw(3) << scoreP2;
     cout << "\n";
     cout << "==================================================\n";
 }

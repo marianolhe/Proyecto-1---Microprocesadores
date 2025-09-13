@@ -31,9 +31,9 @@ int main() {
 
         switch (opcion) {
             case INICIAR_PARTIDA:
-                cout << ">> Iniciando demo del juego...\n";
+                cout << ">> Iniciando partida con jugadores...\n";
                 sleep_for(milliseconds(1000)); 
-                game.runDemo();
+                game.runGameWithPlayers();
                 break;
 
             case INSTRUCCIONES:
@@ -41,10 +41,7 @@ int main() {
                 break;
 
             case PUNTAJES:
-                cout << ">> Pantalla de puntajes en construcción...\n";
-                cout << "Presiona Enter para volver al menú\n";
-                cin.ignore();
-                cin.get();
+                game.showHighScores();
                 break;
 
             case SALIR:
