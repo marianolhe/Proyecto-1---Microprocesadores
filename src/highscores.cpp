@@ -65,7 +65,7 @@ void HighScoreManager::addScore(const string& p1Name, const string& p2Name, int 
 void HighScoreManager::loadScores() {
     ifstream file(filename);
     if (!file.is_open()) {
-        return; // El archivo no existe aún, no hay problema
+        return; // 
     }
     
     highScores.clear();

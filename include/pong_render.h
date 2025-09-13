@@ -21,12 +21,15 @@ private:
     int ballY;
     int ballDirX;
     int ballDirY;
+    string playerName1;
+    string playerName2;
 
 public:
     PongRenderer();
     void updateScores(int p1, int p2);
     void updatePaddles(int p1Y, int p2Y);
     void updateBall(int x, int y, int dirX, int dirY);
+    void updatePlayerNames(const string& name1, const string& name2);
     void renderGame();
     void renderScoreBoard();
     void renderCourt();
