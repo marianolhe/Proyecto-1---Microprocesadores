@@ -31,9 +31,21 @@ int main() {
 
         switch (opcion) {
             case INICIAR_PARTIDA:
-                cout << ">> Iniciando partida con jugadores...\n";
+                cout << ">> Iniciando partida ...\n";
                 sleep_for(milliseconds(1000)); 
-                game.runGameWithPlayers();
+                game.runDemo();
+                break;
+
+            case JUGADOR_VS_JUGADOR:
+                cout << ">> Iniciando partida Jugador vs Jugador...\n";
+                sleep_for(milliseconds(1000)); 
+                game.startGame(1); // Modo JvJ
+                break;
+                
+            case JUGADOR_VS_CPU:
+                cout << ">> Iniciando partida Jugador vs CPU...\n";
+                sleep_for(milliseconds(1000)); 
+                game.startGame(2); // Modo JvsCPU
                 break;
 
             case INSTRUCCIONES:

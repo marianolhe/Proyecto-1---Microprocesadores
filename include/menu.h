@@ -3,6 +3,8 @@
 
 enum MenuOption {
     INICIAR_PARTIDA,
+    JUGADOR_VS_JUGADOR,
+    JUGADOR_VS_CPU,
     INSTRUCCIONES,
     PUNTAJES,
     SALIR

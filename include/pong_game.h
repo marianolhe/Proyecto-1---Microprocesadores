@@ -4,14 +4,13 @@
 #include "pong_render.h"
 #include "highscores.h"
 #include <string>
-#include <thread>
-#include <mutex>
-#include <condition_variable>
+#include <pthread.h>
 #include <queue>
 #include <atomic>
 
 class PongGame {
 private:
+    // Datos del juego
     PongRenderer renderer;
     HighScoreManager scoreManager;
     int scoreP1;
@@ -26,31 +25,50 @@ private:
     std::string playerName1;
     std::string playerName2;
     
-    // Sincronización y eventos (JvJ)
+    // Datos para los hilos
+    ThreadData playerAData;
+    ThreadData playerBData;
+    ThreadData aiData;
+    
+    // Sincronización y eventos
     enum class EventType { P1_UP, P1_DOWN, P2_UP, P2_DOWN };
     std::queue<EventType> queueP1;
     std::queue<EventType> queueP2;
-    std::mutex mtxQueueP1;
-    std::mutex mtxQueueP2;
-    std::condition_variable cvP1;
-    std::condition_variable cvP2;
-
-    // Mutex por paleta
-    std::mutex mutex_paddleA; // protege paddle1Y
-    std::mutex mutex_paddleB; // protege paddle2Y
-
-    // Hilos
-    std::thread tInput;
-    std::thread tPlayerA;
-    std::thread tPlayerB;
-
-    // Señales
-    std::atomic<bool> resetRequested{false};
     
-    // Hilos y lógica auxiliares
-    void inputListenerThread();
-    void playerAThread();
-    void playerBThread();
+    // Mutex y variables de condición POSIX
+    pthread_mutex_t mtxQueueP1;
+    pthread_mutex_t mtxQueueP2;
+    pthread_mutex_t mutex_paddleA;
+    pthread_mutex_t mutex_paddleB;
+    pthread_mutex_t mutex_start_round;
+    
+    pthread_cond_t cvP1;
+    pthread_cond_t cvP2;
+    pthread_cond_t cond_start_round;
+
+    // Hilos POSIX
+    pthread_t input_thread;
+    pthread_t player1_thread;
+    pthread_t player2_thread;
+    pthread_t serve_thread;
+
+    // Estados del juego
+    std::atomic<bool> resetRequested{false};
+    std::atomic<bool> roundInProgress{false};
+    std::atomic<bool> isAIEnabled{false};
+    float ai_difficulty{1.0f};
+
+    // Funciones wrapper para pthread_create
+    static void* inputThreadWrapper(void* arg);
+    static void* playerThreadWrapper(void* arg);
+    static void* aiThreadWrapper(void* arg);
+    static void* serveThreadWrapper(void* arg);
+
+    // Métodos de ejecución de hilos
+    void inputThread();
+    void playerThread(int player_id);
+    void aiThread();
+    void serveThread();
     
     // Lógica del juego por ticks
     void updatePhysics();
@@ -59,6 +77,7 @@ private:
     
 public:
     PongGame();
+    ~PongGame();
     void initializeGame();
     void runDemo();
     void startGame(int gameMode);

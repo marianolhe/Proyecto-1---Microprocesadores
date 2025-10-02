@@ -12,6 +12,32 @@
  ****************************************************/
 
 #include "pong_game.h"
+#include <unistd.h>
+
+// Funciones wrapper para pthread_create
+void* PongGame::inputThreadWrapper(void* arg) {
+    PongGame* game = static_cast<PongGame*>(arg);
+    game->inputThread();
+    return nullptr;
+}
+
+void* PongGame::playerThreadWrapper(void* arg) {
+    ThreadData* data = static_cast<ThreadData*>(arg);
+    data->game->playerThread(data->player_id);
+    return nullptr;
+}
+
+void* PongGame::aiThreadWrapper(void* arg) {
+    PongGame* game = static_cast<PongGame*>(arg);
+    game->aiThread();
+    return nullptr;
+}
+
+void* PongGame::serveThreadWrapper(void* arg) {
+    PongGame* game = static_cast<PongGame*>(arg);
+    game->serveThread();
+    return nullptr;
+}
 #include "utils.h"
 #include <cstdlib>
 #include <ctime>
@@ -24,11 +50,44 @@
 
 using namespace std;
 
+PongGame::~PongGame() {
+    // Destruir mutex
+    pthread_mutex_destroy(&mtxQueueP1);
+    pthread_mutex_destroy(&mtxQueueP2);
+    pthread_mutex_destroy(&mutex_paddleA);
+    pthread_mutex_destroy(&mutex_paddleB);
+    pthread_mutex_destroy(&mutex_start_round);
+    
+    // Destruir variables de condición
+    pthread_cond_destroy(&cvP1);
+    pthread_cond_destroy(&cvP2);
+    pthread_cond_destroy(&cond_start_round);
+}
+
 PongGame::PongGame() {
     srand(time(0));
+    
     // Inicializar nombres por defecto
     playerName1 = "Jugador 1";
     playerName2 = "Jugador 2";
+    
+    // Inicializar mutex
+    pthread_mutex_init(&mtxQueueP1, nullptr);
+    pthread_mutex_init(&mtxQueueP2, nullptr);
+    pthread_mutex_init(&mutex_paddleA, nullptr);
+    pthread_mutex_init(&mutex_paddleB, nullptr);
+    pthread_mutex_init(&mutex_start_round, nullptr);
+    
+    // Inicializar variables de condición
+    pthread_cond_init(&cvP1, nullptr);
+    pthread_cond_init(&cvP2, nullptr);
+    pthread_cond_init(&cond_start_round, nullptr);
+    
+    // Inicializar datos de los hilos
+    playerAData = {this, 1};
+    playerBData = {this, 2};
+    aiData = {this, 2};
+    
     initializeGame();
 }
 
@@ -114,7 +173,46 @@ void PongGame::resetBall() {
 }
 
 void PongGame::startGame(int gameMode) {
-    // Por implementar en la siguiente fase
+    initializeGame();
+    getPlayerNames();
+    
+    // Iniciar hilos según el modo de juego
+    if (gameMode == 1) { // JvJ
+        pthread_create(&input_thread, nullptr, &PongGame::inputThreadWrapper, this);
+        pthread_create(&player1_thread, nullptr, &PongGame::playerThreadWrapper, &playerAData);
+        pthread_create(&player2_thread, nullptr, &PongGame::playerThreadWrapper, &playerBData);
+    } else if (gameMode == 2) { // JvsCPU
+        isAIEnabled = true;
+        roundInProgress = false;
+        ai_difficulty = 0.8f; // 80% de precisión por defecto
+        
+        pthread_create(&input_thread, nullptr, &PongGame::inputThreadWrapper, this);
+        pthread_create(&player1_thread, nullptr, &PongGame::playerThreadWrapper, &playerAData);
+        pthread_create(&player2_thread, nullptr, &PongGame::aiThreadWrapper, this);
+        pthread_create(&serve_thread, nullptr, &PongGame::serveThreadWrapper, this);
+    }
+    
+    // Bucle principal del juego
+    while (gameRunning) {
+        if (roundInProgress) {
+            updatePhysics();
+            checkCollisions();
+            checkScoring();
+        }
+        
+        renderer.render(ballX, ballY, paddle1Y, paddle2Y, scoreP1, scoreP2, 
+                       playerName1, playerName2);
+        
+        std::this_thread::sleep_for(std::chrono::milliseconds(16)); // ~60 FPS
+    }
+    
+    // Esperar a que terminen todos los hilos
+    pthread_join(input_thread, nullptr);
+    pthread_join(player1_thread, nullptr);
+    pthread_join(player2_thread, nullptr);
+    if (isAIEnabled) {
+        pthread_join(serve_thread, nullptr);
+    }
 }
 
 void PongGame::updatePhysics() {
@@ -367,5 +465,99 @@ void PongGame::playerBThread() {
             }
             ul.lock();
         }
+    }
+}
+
+// Adaptador de teclado para jugador humano en modo JvsCPU
+void PongGame::player_keyboard_adapter_thread() {
+    auto inBounds = [](int y) {
+        if (y < 1) return 1;
+        if (y > HEIGHT - PADDLE_HEIGHT - 1) return HEIGHT - PADDLE_HEIGHT - 1;
+        return y;
+    };
+
+    while (gameRunning) {
+        if (roundInProgress) {
+            char input = Utils::getChar();
+            if (input != 0) {
+                std::lock_guard<std::mutex> paddleLock(mutex_paddleA);
+                if (input == 'w' && paddle1Y > 0) {
+                    paddle1Y = inBounds(paddle1Y - 1);
+                } else if (input == 's' && paddle1Y + PADDLE_HEIGHT < HEIGHT) {
+                    paddle1Y = inBounds(paddle1Y + 1);
+                }
+            }
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(16)); // ~60 FPS
+    }
+}
+
+// Gestión de inicio/reinicio de rondas
+void PongGame::serve_manager_thread() {
+    while (gameRunning) {
+        {
+            std::unique_lock<std::mutex> lock(mutex_start_round);
+            cond_start_round.wait(lock, [this] { 
+                return resetRequested || !gameRunning; 
+            });
+            
+            if (!gameRunning) break;
+            
+            // Reiniciar posición de la pelota y estado de la ronda
+            resetBall();
+            roundInProgress = true;
+            resetRequested = false;
+            
+            // Dar tiempo a los jugadores para prepararse
+            lock.unlock();
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+        }
+        
+        // Notificar que la ronda ha comenzado
+        renderer.drawCountdown();
+    }
+}
+
+// Implementación de la IA para el modo JvsCPU
+void PongGame::ai_opponent_thread() {
+    auto inBounds = [](int y) {
+        if (y < 1) return 1;
+        if (y > HEIGHT - PADDLE_HEIGHT - 1) return HEIGHT - PADDLE_HEIGHT - 1;
+        return y;
+    };
+
+    while (gameRunning) {
+        if (isAIEnabled && roundInProgress) {
+            std::lock_guard<std::mutex> paddleLock(mutex_paddleB);
+            
+            // Solo mover si la pelota va hacia la IA
+            if (ballSpeedX > 0) {
+                // Predecir dónde va a estar la pelota
+                float timeToReach = (WIDTH - PADDLE_WIDTH - ballX) / static_cast<float>(ballSpeedX);
+                float predictedY = ballY + (ballSpeedY * timeToReach);
+                
+                // Ajustar por rebotes
+                while (predictedY < 0 || predictedY > HEIGHT) {
+                    if (predictedY < 0) {
+                        predictedY = -predictedY;
+                    } else if (predictedY > HEIGHT) {
+                        predictedY = 2 * HEIGHT - predictedY;
+                    }
+                }
+
+                // Calcular el centro óptimo de la paleta
+                int targetY = static_cast<int>(predictedY - PADDLE_HEIGHT/2);
+                targetY = inBounds(targetY);
+
+                // Mover la paleta con la dificultad configurada
+                float errorMargin = PADDLE_HEIGHT * (1.0f - ai_difficulty);
+                if (paddle2Y + PADDLE_HEIGHT/2 < targetY + PADDLE_HEIGHT/2 - errorMargin) {
+                    paddle2Y = inBounds(paddle2Y + 1);
+                } else if (paddle2Y + PADDLE_HEIGHT/2 > targetY + PADDLE_HEIGHT/2 + errorMargin) {
+                    paddle2Y = inBounds(paddle2Y - 1);
+                }
+            }
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(16)); // ~60 FPS
     }
 }
