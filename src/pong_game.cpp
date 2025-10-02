@@ -334,22 +334,28 @@ void PongGame::startGame(int gameMode) {
         isAIEnabled = true;
         gameRunning = true;
 
+        // Crear hilos
         pthread_create(&ball_thread, nullptr, &PongGame::ballThreadWrapper, this);
         pthread_create(&cpuA_thread, nullptr, &PongGame::cpuPlayerAThreadWrapper, this);
         pthread_create(&cpuB_thread, nullptr, &PongGame::cpuPlayerBThreadWrapper, this);
 
-        // Bucle de renderizado
+        // Bucle de renderizado sincronizado con cond_frame_ready
         while (gameRunning) {
             pthread_mutex_lock(&mutex_game_state);
+            // Esperar hasta que el hilo de la pelota genere un nuevo frame
+            pthread_cond_wait(&cond_frame_ready, &mutex_game_state);
+
+            // Actualizar renderer con el estado actual
             renderer.updateScores(scoreP1, scoreP2);
             renderer.updatePaddles(paddle1Y, paddle2Y);
             renderer.updateBall(ballX, ballY, ballSpeedX, ballSpeedY);
             pthread_mutex_unlock(&mutex_game_state);
 
+            // Renderizar
             renderer.renderGame();
-            usleep(100 * 1000);
         }
 
+        // Esperar a que terminen los hilos
         pthread_join(ball_thread, nullptr);
         pthread_join(cpuA_thread, nullptr);
         pthread_join(cpuB_thread, nullptr);
