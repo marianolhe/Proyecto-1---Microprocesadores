@@ -21,11 +21,12 @@ using namespace std;
 
 MenuOption mostrarMenu() {
     int seleccion = 0;
-    const int numOpciones = 6;
+    const int numOpciones = 7;
     string opciones[numOpciones] = {
         "Iniciar partida",
         "Jugador vs Jugador ",
         "Jugador vs CPU",
+        "CPU vs CPU",
         "Instrucciones",
         "Puntajes destacados",
         "Salir del juego"

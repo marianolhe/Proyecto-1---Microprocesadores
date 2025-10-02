@@ -75,6 +75,87 @@ void* PongGame::inputThreadWrapper(void* arg) {
     return nullptr;
 }
 
+// ===================== HILO DE LA PELOTA =====================
+void* PongGame::ballThreadWrapper(void* arg) {
+    PongGame* game = static_cast<PongGame*>(arg);
+
+    while (game->gameRunning) {
+        pthread_mutex_lock(&game->mutex_game_state);
+
+        // Mover pelota
+        game->ballX += game->ballSpeedX;
+        game->ballY += game->ballSpeedY;
+
+        // Rebotes con bordes superior e inferior
+        if (game->ballY <= 1 || game->ballY >= HEIGHT - 2) {
+            game->ballSpeedY = -game->ballSpeedY;
+        }
+
+        // Colisiones con paletas
+        if (game->ballX <= 3) {
+            if (game->ballY >= game->paddle1Y && game->ballY <= game->paddle1Y + PADDLE_HEIGHT) {
+                game->ballSpeedX = 1;
+            } else {
+                game->scoreP2++;
+                game->resetBall();
+            }
+        }
+        if (game->ballX >= WIDTH - 4) {
+            if (game->ballY >= game->paddle2Y && game->ballY <= game->paddle2Y + PADDLE_HEIGHT) {
+                game->ballSpeedX = -1;
+            } else {
+                game->scoreP1++;
+                game->resetBall();
+            }
+        }
+
+        pthread_mutex_unlock(&game->mutex_game_state);
+
+        pthread_cond_signal(&game->cond_frame_ready); // Notificar frame listo
+        usleep(100 * 1000); // ~60 FPS
+    }
+    return nullptr;
+}
+
+// ===================== HILO CPU PLAYER A =====================
+void* PongGame::cpuPlayerAThreadWrapper(void* arg) {
+    PongGame* game = static_cast<PongGame*>(arg);
+
+    while (game->gameRunning) {
+        pthread_mutex_lock(&game->mutex_game_state);
+
+        if (game->ballSpeedX < 0) { // Pelota va hacia la izquierda
+            int targetY = game->ballY - PADDLE_HEIGHT / 2;
+            if (game->paddle1Y < targetY) game->paddle1Y++;
+            else if (game->paddle1Y > targetY) game->paddle1Y--;
+        }
+
+        pthread_mutex_unlock(&game->mutex_game_state);
+        usleep(16 * 1000);
+    }
+    return nullptr;
+}
+
+// ===================== HILO CPU PLAYER B =====================
+void* PongGame::cpuPlayerBThreadWrapper(void* arg) {
+    PongGame* game = static_cast<PongGame*>(arg);
+
+    while (game->gameRunning) {
+        pthread_mutex_lock(&game->mutex_game_state);
+
+        if (game->ballSpeedX > 0) { // Pelota va hacia la derecha
+            int targetY = game->ballY - PADDLE_HEIGHT / 2;
+            if (game->paddle2Y < targetY) game->paddle2Y++;
+            else if (game->paddle2Y > targetY) game->paddle2Y--;
+        }
+
+        pthread_mutex_unlock(&game->mutex_game_state);
+        usleep(16 * 1000);
+    }
+    return nullptr;
+}
+
+
 void* PongGame::playerThreadWrapper(void* arg) {
     ThreadData* data = static_cast<ThreadData*>(arg);
     // Llamamos al método genérico definido en el header
@@ -101,11 +182,13 @@ PongGame::~PongGame() {
     pthread_mutex_destroy(&mutex_paddleA);
     pthread_mutex_destroy(&mutex_paddleB);
     pthread_mutex_destroy(&mutex_start_round);
+    pthread_mutex_destroy(&mutex_game_state);
 
     // Destruir variables de condición
     pthread_cond_destroy(&cvP1);
     pthread_cond_destroy(&cvP2);
     pthread_cond_destroy(&cond_start_round);
+    pthread_cond_destroy(&cond_frame_ready);
 }
 
 PongGame::PongGame() {
@@ -121,6 +204,9 @@ PongGame::PongGame() {
     pthread_mutex_init(&mutex_paddleA, nullptr);
     pthread_mutex_init(&mutex_paddleB, nullptr);
     pthread_mutex_init(&mutex_start_round, nullptr);
+    pthread_mutex_init(&mutex_game_state, nullptr);
+    pthread_cond_init(&cond_frame_ready, nullptr);
+
 
     // Inicializar variables de condición
     pthread_cond_init(&cvP1, nullptr);
@@ -244,7 +330,31 @@ void PongGame::startGame(int gameMode) {
         pthread_create(&player1_thread, nullptr, [](void* arg) -> void* { static_cast<PongGame*>(arg)->player_keyboard_adapter_thread(); return nullptr; }, this);
         pthread_create(&player2_thread, nullptr, &PongGame::aiThreadWrapper, this);
         pthread_create(&serve_thread, nullptr, &PongGame::serveThreadWrapper, this);
+    } else if (gameMode == 3) { // CPU vs CPU
+        isAIEnabled = true;
+        gameRunning = true;
+
+        pthread_create(&ball_thread, nullptr, &PongGame::ballThreadWrapper, this);
+        pthread_create(&cpuA_thread, nullptr, &PongGame::cpuPlayerAThreadWrapper, this);
+        pthread_create(&cpuB_thread, nullptr, &PongGame::cpuPlayerBThreadWrapper, this);
+
+        // Bucle de renderizado
+        while (gameRunning) {
+            pthread_mutex_lock(&mutex_game_state);
+            renderer.updateScores(scoreP1, scoreP2);
+            renderer.updatePaddles(paddle1Y, paddle2Y);
+            renderer.updateBall(ballX, ballY, ballSpeedX, ballSpeedY);
+            pthread_mutex_unlock(&mutex_game_state);
+
+            renderer.renderGame();
+            usleep(100 * 1000);
+        }
+
+        pthread_join(ball_thread, nullptr);
+        pthread_join(cpuA_thread, nullptr);
+        pthread_join(cpuB_thread, nullptr);
     }
+
 
     // Bucle principal del juego
     while (gameRunning) {

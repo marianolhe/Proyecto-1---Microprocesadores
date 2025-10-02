@@ -43,6 +43,13 @@ int main() {
                 sleep(1);
                 game.startGame(2); // Modo JvsCPU
                 break;
+            
+            case CPU_VS_CPU:
+                cout << ">> Iniciando partida CPU vs CPU...\n";
+                sleep(1);
+                game.startGame(3);
+                break;
+
 
             case INSTRUCCIONES:
                 mostrarInstrucciones();

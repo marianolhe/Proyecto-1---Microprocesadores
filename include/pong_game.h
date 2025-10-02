@@ -73,6 +73,11 @@ private:
     static void* aiThreadWrapper(void* arg);
     static void* serveThreadWrapper(void* arg);
 
+    // Wrappers para CPU vs CPU
+    static void* ballThreadWrapper(void* arg);
+    static void* cpuPlayerAThreadWrapper(void* arg);
+    static void* cpuPlayerBThreadWrapper(void* arg);
+
     // Métodos de ejecución de hilos
     void inputThread();
     void playerThread(int player_id);
@@ -90,6 +95,15 @@ private:
     void updatePhysics();
     void checkCollisions();
     void checkScoring();
+
+    // Hilos CPU vs CPU
+    pthread_t ball_thread;
+    pthread_t cpuA_thread;
+    pthread_t cpuB_thread;
+
+    // Sincronización del estado global
+    pthread_mutex_t mutex_game_state;
+    pthread_cond_t cond_frame_ready;
     
 public:
     PongGame();
