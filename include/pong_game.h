@@ -8,6 +8,15 @@
 #include <queue>
 #include <atomic>
 
+// Forward declaration
+class PongGame;
+
+// Estructura para pasar datos a los hilos
+struct ThreadData {
+    PongGame* game;
+    int player_id;
+};
+
 class PongGame {
 private:
     // Datos del juego
