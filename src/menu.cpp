@@ -24,7 +24,7 @@ MenuOption mostrarMenu() {
     const int numOpciones = 6;
     string opciones[numOpciones] = {
         "Iniciar partida",
-        "Jugador vs Jugador",
+        "Jugador vs Jugador ",
         "Jugador vs CPU",
         "Instrucciones",
         "Puntajes destacados",

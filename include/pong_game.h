@@ -78,6 +78,13 @@ private:
     void playerThread(int player_id);
     void aiThread();
     void serveThread();
+    // Implementaciones internas usadas en .cpp
+    void inputListenerThread();
+    void playerAThread();
+    void playerBThread();
+    void player_keyboard_adapter_thread();
+    void serve_manager_thread();
+    void ai_opponent_thread();
     
     // Lógica del juego por ticks
     void updatePhysics();
