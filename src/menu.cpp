@@ -13,7 +13,6 @@
  ****************************************************/
 
 #include <iostream>
-#include <cstdlib>
 #include "menu.h"
 #include "utils.h"
 
@@ -21,12 +20,9 @@ using namespace std;
 
 MenuOption mostrarMenu() {
     int seleccion = 0;
-    const int numOpciones = 7;
+    const int numOpciones = 4;
     string opciones[numOpciones] = {
         "Iniciar partida",
-        "Jugador vs Jugador ",
-        "Jugador vs CPU",
-        "CPU vs CPU",
         "Instrucciones",
         "Puntajes destacados",
         "Salir del juego"

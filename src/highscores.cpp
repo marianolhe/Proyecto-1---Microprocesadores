@@ -24,7 +24,18 @@ using namespace std;
 
 HighScoreManager::HighScoreManager() {
     filename = "pong_highscores.txt";
+    sem_init(&file_semaphore, 0, 1);
     loadScores();
+}
+
+HighScoreManager::~HighScoreManager() {
+    sem_destroy(&file_semaphore);
+}
+
+void HighScoreManager::safeAddScore(const std::string& p1Name, const std::string& p2Name, int p1Score, int p2Score) {
+    sem_wait(&file_semaphore);
+    addScore(p1Name, p2Name, p1Score, p2Score);
+    sem_post(&file_semaphore);
 }
 
 void HighScoreManager::addScore(const string& p1Name, const string& p2Name, int p1Score, int p2Score) {
@@ -32,12 +43,9 @@ void HighScoreManager::addScore(const string& p1Name, const string& p2Name, int 
         HighScore newScore;
         newScore.player1Name = p1Name;
         newScore.player2Name = p2Name;
+        newScore.player1Score = p1Score;
+        newScore.player2Score = p2Score;
         
-        // Como el juego está en desarrollo, siempre guardamos 0-0
-        newScore.player1Score = 0;
-        newScore.player2Score = 0;
-        
-        // Obtener fecha actual de forma más simple
         time_t now = time(0);
         tm* timeinfo = localtime(&now);
         if (timeinfo != nullptr) {
@@ -45,27 +53,28 @@ void HighScoreManager::addScore(const string& p1Name, const string& p2Name, int 
             strftime(buffer, sizeof(buffer), "%d/%m/%Y", timeinfo);
             newScore.date = string(buffer);
         } else {
-            newScore.date = "12/09/2025"; // Fecha fija si hay problemas
+            newScore.date = "01/01/2024";
         }
         
         highScores.push_back(newScore);
         
-        // Mantener solo los últimos MAX_SCORES
         if (highScores.size() > MAX_SCORES) {
             highScores.erase(highScores.begin());
         }
         
         saveScores();
     } catch (...) {
-        // Si hay algún error, no crashear el programa
         cout << "Error al guardar puntaje, pero el juego continúa.\n";
     }
 }
 
 void HighScoreManager::loadScores() {
+    sem_wait(&file_semaphore);
+    
     ifstream file(filename);
     if (!file.is_open()) {
-        return; // 
+        sem_post(&file_semaphore);
+        return;
     }
     
     highScores.clear();
@@ -95,13 +104,17 @@ void HighScoreManager::loadScores() {
     }
     
     file.close();
+    sem_post(&file_semaphore);
 }
 
 void HighScoreManager::saveScores() {
+    sem_wait(&file_semaphore);
+    
     try {
         ofstream file(filename);
         if (!file.is_open()) {
             cout << "No se pudo guardar el archivo de puntajes.\n";
+            sem_post(&file_semaphore);
             return;
         }
         
@@ -117,9 +130,13 @@ void HighScoreManager::saveScores() {
     } catch (...) {
         cout << "Error al guardar archivo de puntajes.\n";
     }
+    
+    sem_post(&file_semaphore);
 }
 
 void HighScoreManager::displayHighScores() {
+    sem_wait(&file_semaphore);
+    
     system("clear");
     cout << "========================================\n";
     cout << "           PUNTAJES DESTACADOS          \n";
@@ -143,8 +160,6 @@ void HighScoreManager::displayHighScores() {
                  << setw(5) << score.player1Score << "-" << setw(4) << score.player2Score
                  << setw(12) << score.date << "\n";
         }
-        
-        cout << "\n* Nota: Durante el desarrollo, todos los puntajes se guardan como 0-0\n";
     }
     
     cout << "\n========================================\n";
@@ -152,6 +167,8 @@ void HighScoreManager::displayHighScores() {
     cout << "========================================\n";
     cin.ignore();
     cin.get();
+    
+    sem_post(&file_semaphore);
 }
 
 vector<HighScore> HighScoreManager::getHighScores() const {

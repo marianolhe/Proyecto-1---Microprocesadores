@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include <mutex>
 #include "utils.h"
 
 using namespace std;
@@ -23,6 +24,7 @@ private:
     int ballDirY;
     string playerName1;
     string playerName2;
+    mutex renderMutex;
 
 public:
     PongRenderer();
