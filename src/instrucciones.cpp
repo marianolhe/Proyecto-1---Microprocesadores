@@ -12,14 +12,13 @@
  ****************************************************/
 
 #include <iostream>
-#include <cstdlib>
 #include "instrucciones.h"
 #include "utils.h"
 
 using namespace std;
 
 void mostrarInstrucciones() {
-    system("clear"); 
+    system("clear");
     cout << "========================================\n";
     cout << "              INSTRUCCIONES             \n";
     cout << "========================================\n\n";
@@ -47,5 +46,5 @@ void mostrarInstrucciones() {
     cout << "     Presiona cualquier tecla para volver\n";
     cout << "========================================\n";
 
-    getch(); 
+    getch();
 }

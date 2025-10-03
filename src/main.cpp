@@ -15,12 +15,8 @@
 #include "instrucciones.h"
 #include "pong_game.h"
 #include "utils.h"
-#include <thread>
-#include <chrono>
-
+#include <unistd.h>
 using namespace std;
-using namespace std::this_thread; 
-using namespace std::chrono;      
 
 int main() {
     PongGame game;
@@ -31,10 +27,29 @@ int main() {
 
         switch (opcion) {
             case INICIAR_PARTIDA:
-                cout << ">> Iniciando partida con jugadores...\n";
-                sleep_for(milliseconds(1000)); 
-                game.runGameWithPlayers();
+                cout << ">> Iniciando partida ...\n";
+                sleep(1);
+                game.runDemo();
                 break;
+
+            case JUGADOR_VS_JUGADOR:
+                cout << ">> Iniciando partida Jugador vs Jugador...\n";
+                sleep(1);
+                game.startGame(1); // Modo JvJ
+                break;
+                
+            case JUGADOR_VS_CPU:
+                cout << ">> Iniciando partida Jugador vs CPU...\n";
+                sleep(1);
+                game.startGame(2); // Modo JvsCPU
+                break;
+            
+            case CPU_VS_CPU:
+                cout << ">> Iniciando partida CPU vs CPU...\n";
+                sleep(1);
+                game.startGame(3);
+                break;
+
 
             case INSTRUCCIONES:
                 mostrarInstrucciones();
