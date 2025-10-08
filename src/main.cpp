@@ -31,9 +31,10 @@ int main() {
 
         switch (opcion) {
             case INICIAR_PARTIDA:
-                cout << ">> Iniciando partida con jugadores...\n";
-                sleep_for(milliseconds(1000)); 
-                game.runGameWithPlayers();
+                {
+                    int modo = mostrarModoJuego();
+                    game.startGame(modo);
+                }
                 break;
 
             case INSTRUCCIONES:
@@ -50,6 +51,6 @@ int main() {
         }
     }
 
-    cout << "Gracias por jugar Pong ASCII!\n";
+    cout << "🎮 Gracias por jugar Pong ASCII! 🎮\n";
     return 0;
 }

@@ -14,6 +14,10 @@
 #include "pong_render.h"
 #include <cstdlib>
 #include <iomanip>
+#include <iostream>
+#include <vector>
+
+using namespace std;
 
 PongRenderer::PongRenderer() {
     scoreP1 = 0;
@@ -29,16 +33,19 @@ PongRenderer::PongRenderer() {
 }
 
 void PongRenderer::updateScores(int p1, int p2) {
+    lock_guard<mutex> lock(renderMutex);
     scoreP1 = p1;
     scoreP2 = p2;
 }
 
 void PongRenderer::updatePaddles(int p1Y, int p2Y) {
+    lock_guard<mutex> lock(renderMutex);
     paddle1Y = p1Y;
     paddle2Y = p2Y;
 }
 
 void PongRenderer::updateBall(int x, int y, int dirX, int dirY) {
+    lock_guard<mutex> lock(renderMutex);
     ballX = x;
     ballY = y;
     ballDirX = dirX;
@@ -46,6 +53,7 @@ void PongRenderer::updateBall(int x, int y, int dirX, int dirY) {
 }
 
 void PongRenderer::updatePlayerNames(const string& name1, const string& name2) {
+    lock_guard<mutex> lock(renderMutex);
     playerName1 = name1;
     playerName2 = name2;
 }
@@ -55,13 +63,10 @@ void PongRenderer::clearScreen() {
 }
 
 void PongRenderer::renderScoreBoard() {
-    cout << "==================================================\n";
-    
-    // Truncar nombres si son muy largos para mantener formato
     string name1 = playerName1.length() > 10 ? playerName1.substr(0, 10) : playerName1;
     string name2 = playerName2.length() > 10 ? playerName2.substr(0, 10) : playerName2;
     
-    // Formatear con espaciado dinámico para que siempre se vea bien
+    cout << "==================================================\n";
     cout << "  " << left << setw(12) << (name1 + ":") << setw(3) << scoreP1;
     cout << "     " << left << setw(12) << (name2 + ":") << setw(3) << scoreP2;
     cout << "\n";
@@ -69,51 +74,47 @@ void PongRenderer::renderScoreBoard() {
 }
 
 void PongRenderer::renderCourt() {
+    vector<string> screen(HEIGHT, string(WIDTH, ' '));
+    
+    // Bordes y línea central
     for (int y = 0; y < HEIGHT; y++) {
-        cout << "#";
-        
-        for (int x = 1; x < WIDTH - 1; x++) {
-            if (x == WIDTH / 2) {
-                cout << "|"; 
-            } else {
-                cout << " ";
-            }
+        screen[y][0] = '#';
+        screen[y][WIDTH - 1] = '#';
+        screen[y][WIDTH / 2] = '|';
+    }
+    
+    // Paleta izquierda
+    for (int i = 0; i < PADDLE_HEIGHT; i++) {
+        if (paddle1Y + i < HEIGHT) {
+            screen[paddle1Y + i][2] = '|';
         }
-        
-        cout << "#\n";
-    }
-}
-
-void PongRenderer::renderPaddles() {
-    for (int i = 0; i < PADDLE_HEIGHT; i++) {
-        gotoxy(2, paddle1Y + i + 3); 
-        cout << "|";
     }
     
+    // Paleta derecha
     for (int i = 0; i < PADDLE_HEIGHT; i++) {
-        gotoxy(WIDTH - 3, paddle2Y + i + 3); 
-        cout << "|";
+        if (paddle2Y + i < HEIGHT) {
+            screen[paddle2Y + i][WIDTH - 3] = '|';
+        }
     }
-}
-
-void PongRenderer::renderBall() {
-    gotoxy(ballX, ballY + 3); 
     
-    if (ballDirX > 0 && ballDirY > 0) cout << "↘";
-    else if (ballDirX > 0 && ballDirY < 0) cout << "↗";
-    else if (ballDirX < 0 && ballDirY > 0) cout << "↙";
-    else if (ballDirX < 0 && ballDirY < 0) cout << "↖";
-    else cout << "O";
+    // Pelota con dirección
+    if (ballX >= 0 && ballX < WIDTH && ballY >= 0 && ballY < HEIGHT) {
+        screen[ballY][ballX] = (ballDirX > 0) ? '>' : '<';
+    }
+    
+    // Imprimir pantalla
+    for (int y = 0; y < HEIGHT; y++) {
+        cout << screen[y] << "\n";
+    }
 }
 
 void PongRenderer::renderGame() {
+    lock_guard<mutex> lock(renderMutex);
     clearScreen();
     renderScoreBoard();
     renderCourt();
-    renderPaddles();
-    renderBall();
     
-    gotoxy(0, HEIGHT + 6);
     cout << "Controles: W/S (P1) ↑/↓ (P2) | Q: Salir | R: Reiniciar\n";
     cout << "==================================================\n";
+    cout.flush();
 }
